@@ -1,12 +1,12 @@
-import 'dart:html';
-
 import 'dart:math';
 
 class Graph<num> {
+  final bool isOriented;
   List<Node<num>> _nodes = [];
-  Graph(int nodesCount) {
+  Graph(int nodesCount, this.isOriented) {
     _nodes = Iterable.generate(nodesCount).map((e) => Node<num>(e)).toList();
   }
+  Graph.def(this.isOriented);
   int get lenght => _nodes.length;
   Iterable<Node<num>> get nodes => _nodes;
   Iterable<Edge<num>> get edges => [
@@ -28,29 +28,40 @@ class Graph<num> {
     }
   }
 
-  void connect(index1, index2, edgeValue) {
-    var eadge =
-        Node.connect<num>(_nodes[index1], _nodes[index2], this, edgeValue);
-    _nodes[index1]._edges.add(eadge);
-    _nodes[index2]._edges.add(eadge);
+  void connect(Node<num> node1, Node<num> node2, num edgeValue) {
+    var eadges = Node.connect<num>(node1, node2, this, edgeValue);
+    if (isOriented) {
+      node1._edges.add(eadges.item1);
+    } else {
+      node1._edges.add(eadges.item1);
+      node2._edges.add(eadges.item2);
+    }
   }
 
   void disconect(Edge<num> edge) {
     Node.disconect(edge);
   }
 
-  static Graph makeGraph<num>(
-      Map<Node<num>, Node<num>> incidentNodes, List<num> values) {
+  Node<num> operator [](int index) {
+    return _nodes[index];
+  }
+
+  static Graph<num> makeGraph<num>(
+      List<Tuple<Node<num>, Node<num>>> incidentNodes,
+      List<num> values,
+      bool isOriented) {
     if (incidentNodes.length == values.length) {
-      var graph = Graph(incidentNodes.length);
+      var graph = Graph<num>.def(isOriented);
       int i = 0;
-      int counter = 0;
-      for (var element in incidentNodes.entries) {
+      for (var element in incidentNodes) {
+        if (!graph.nodes.contains(element.item1)) {
+          graph.addNode(element.item1);
+        }
+        if (!graph.nodes.contains(element.item2)) {
+          graph.addNode(element.item2);
+        }
+        graph.connect(element.item1, element.item2, values[i]);
         i++;
-        counter++;
-        graph.addNode(element.key);
-        graph.addNode(element.value);
-        graph.connect(counter, counter + 1, values[i]);
       }
       return graph;
     } else {
@@ -83,15 +94,14 @@ class Node<num> {
   }
 
   static int _counter = 1;
-  static Edge<num> connect<num>(
+  static Tuple<Edge<num>, Edge<num>> connect<num>(
       Node<num> node1, Node<num> node2, Graph<num> graph, num value) {
     if (!graph.nodes.contains(node1) || !graph.nodes.contains(node2)) {
       throw FormatException("incorect node");
     }
-    var edge = Edge<num>(node1, node2, value);
-    node1._edges.add(edge);
-    node2._edges.add(edge);
-    return edge;
+    var edge1 = Edge<num>(node1, node2, value);
+    var edge2 = Edge(node2, node1, value);
+    return Tuple(edge1, edge2);
   }
 
   static void disconect(Edge edge) {
@@ -101,11 +111,7 @@ class Node<num> {
 
   @override
   bool operator ==(other) {
-    if (other is Node<num>) {
-      var node = other;
-      return _id == node.id;
-    }
-    return false;
+    return other is Node<num> && _id == other.id;
   }
 
   @override
@@ -135,4 +141,10 @@ class Edge<num> {
       throw FormatException("incorect value");
     }
   }
+}
+
+class Tuple<T1, T2> {
+  Tuple(this.item1, this.item2);
+  T1 item1;
+  T2 item2;
 }
