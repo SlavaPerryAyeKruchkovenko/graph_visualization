@@ -1,6 +1,7 @@
 import 'dart:html';
 
-/// Checks if you are awesome. Spoiler: you are.
+import 'dart:math';
+
 class Graph<num> {
   List<Node<num>> _nodes = [];
   Graph(int nodesCount) {
