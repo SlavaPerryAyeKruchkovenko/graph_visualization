@@ -13,7 +13,7 @@ void main() {
     Tuple(nodes[3], nodes[4]),
   ];
   var values = [11, 2, 3, 4, 5, 6];
-  var graph = Graph.makeGraph<int>(incedentNodes, values, false);
+  var graph = Graph.makeGraph<int>(incedentNodes, values, isOriented: false);
   var table = graph.linkTable;
   var i = 0;
   for (var item in table) {

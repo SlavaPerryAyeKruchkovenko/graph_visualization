@@ -47,9 +47,8 @@ class Graph<num> {
   }
 
   static Graph<num> makeGraph<num>(
-      List<Tuple<Node<num>, Node<num>>> incidentNodes,
-      List<num> values,
-      bool isOriented) {
+      List<Tuple<Node<num>, Node<num>>> incidentNodes, List<num> values,
+      {bool isOriented = false}) {
     if (incidentNodes.length == values.length) {
       var graph = Graph<num>.def(isOriented);
       int i = 0;
