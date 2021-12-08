@@ -2,6 +2,10 @@ import 'package:graph_logic/graph_logic.dart';
 import 'package:graph_logic/src/exstansions.dart';
 
 void main() {
+  example2();
+}
+
+void example1() {
   var list = [0, 1, 2, 3, 4];
   var nodes = list.map((e) => Node(e)).toList();
   List<Tuple<Node<int>, Node<int>>> incedentNodes = [
@@ -14,6 +18,20 @@ void main() {
   ];
   var values = [11, 2, 3, 4, 5, 6];
   var graph = Graph.makeGraph<int>(incedentNodes, values, isOriented: false);
+  printTable(graph);
+}
+
+void example2() {
+  var list = List.generate(4, (index) => List.generate(4, (index) => 0));
+  list[0][1] = 1;
+  list[1][2] = 2;
+  list[2][3] = 3;
+  list[3][0] = 4;
+  var graph = list.getGraph(isOriented: true);
+  printTable(graph);
+}
+
+void printTable(Graph<num> graph) {
   var table = graph.linkTable;
   var i = 0;
   for (var item in table) {

@@ -22,3 +22,22 @@ extension GraphExtension on Graph<num> {
     return result;
   }
 }
+
+extension ListExtension on List<List<num>> {
+  Graph<num> getGraph({bool isOriented = false}) {
+    if (isEmpty || this[0].length != length) {
+      return Graph<num>.def(isOriented);
+    } else {
+      var graph = Graph<num>(length, isOriented);
+      for (var j = 0; j < length; j++) {
+        for (var i = 0; i < length; i++) {
+          var num = this[j][i];
+          if (num != 0) {
+            graph.connect(graph[j], graph[i], num);
+          }
+        }
+      }
+      return graph;
+    }
+  }
+}
