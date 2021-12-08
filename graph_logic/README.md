@@ -11,29 +11,49 @@ and the Flutter guide for
 [developing packages and plugins](https://flutter.dev/developing-packages). 
 -->
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+This package include classes describing logic of graph. 
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+You can create oriented or unoriented grpaph. grapgh can work only with num's types.
 
 ## Getting started
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+Graph has static method which helps to create graph.
 
 ## Usage
-
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
-
 ```dart
-const like = 'sample';
+var list = [0, 1, 2, 3, 4];
+  var nodes = list.map((e) => Node(e)).toList();
+  List<Tuple<Node<int>, Node<int>>> incedentNodes = [
+    Tuple(nodes[0], nodes[1]),
+    Tuple(nodes[0], nodes[2]),
+    Tuple(nodes[1], nodes[3]),
+    Tuple(nodes[1], nodes[4]),
+    Tuple(nodes[2], nodes[3]),
+    Tuple(nodes[3], nodes[4]),
+  ];
+  var values = [11, 2, 3, 4, 5, 6];
+  var graph = Graph.makeGraph<int>(incedentNodes, values, isOriented: false);
 ```
+
+you can get link table of node's link
+```dart
+var table = graph.linkTable;
+```
+example of link table the code above
+
+0:
+0 11 2 100000 100000
+1: 
+11 0 100000 3 4 
+2: 
+2 100000 0 5 100000 
+3: 
+100000 3 5 0 6
+4: 
+100000 4 100000 6 0
 
 ## Additional information
 
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+this package was created for training purposes.
