@@ -9,13 +9,13 @@ class Graph<num> {
   Graph.def(this.isOriented);
   int get lenght => _nodes.length;
   Iterable<Node<num>> get nodes => _nodes;
-  Iterable<Edge<num>> get edges => [
-        ...{
-          ..._nodes
-              .map((x) => x.incidentEdges)
-              .reduce((x, element) => x.toList() + element.toList())
-        }
-      ];
+  Iterable<Edge<num>> get edges => isOriented
+      ? _nodes
+          .map((x) => x.incidentEdges)
+          .reduce((x, element) => x.toList() + element.toList())
+      : _nodes.map((x) => x.incidentEdges).reduce((x, element) =>
+          x.where((t) => element.every((element) => element != t)).toList() +
+          element.toList());
 
   void addNode(value) {
     if (value is num) {
@@ -144,6 +144,8 @@ class Edge<num> {
   final Node<num> from;
   final Node<num> to;
   late final num value;
+  @override
+  int get hashCode => to.hashCode;
   Edge(this.from, this.to, num value) {
     if (value as int > maxValue) {
       throw Exception("Incorect value of Node");
@@ -165,6 +167,13 @@ class Edge<num> {
     } else {
       throw FormatException("incorect value");
     }
+  }
+
+  @override
+  bool operator ==(other) {
+    return other is Edge<num> &&
+        [other.to.id, other.from.id].contains(to.id) &&
+        [other.to.id, other.from.id].contains(from.id);
   }
 }
 

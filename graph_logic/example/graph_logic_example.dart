@@ -2,7 +2,7 @@ import 'package:graph_logic/graph_logic.dart';
 import 'package:graph_logic/src/exstansions.dart';
 
 void main() {
-  example2();
+  example1();
 }
 
 void example1() {
@@ -17,8 +17,16 @@ void example1() {
     Tuple(nodes[3], nodes[4]),
   ];
   var values = [11, 2, 3, 4, 5, 6];
-  var graph = Graph.makeGraph<int>(incedentNodes, values, isOriented: false);
-  printTable(graph);
+  var graph = Graph.makeGraph<int>(incedentNodes, values, isOriented: true);
+  var count = graph.edges;
+  for (var el in count) {
+    print(el.to.number.toString() +
+        ' ' +
+        el.from.number.toString() +
+        " " +
+        el.value.toString());
+  }
+  //printTable(graph);
 }
 
 void example2() {
@@ -29,6 +37,14 @@ void example2() {
   list[3][0] = 4;
   var graph = list.getGraph(isOriented: true);
   printTable(graph);
+}
+
+void example3() {
+  var node1 = Node<int>(1);
+  var node2 = Node<int>(2);
+  var edge1 = Edge(node1, node2, 3);
+  var edge2 = Edge(node2, node1, 3);
+  print(edge1 == edge2);
 }
 
 void printTable(Graph<num> graph) {
