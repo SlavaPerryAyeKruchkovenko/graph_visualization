@@ -18,15 +18,7 @@ void example1() {
   ];
   var values = [11, 2, 3, 4, 5, 6];
   var graph = Graph.makeGraph<int>(incedentNodes, values, isOriented: true);
-  var count = graph.edges;
-  for (var el in count) {
-    print(el.to.number.toString() +
-        ' ' +
-        el.from.number.toString() +
-        " " +
-        el.value.toString());
-  }
-  //printTable(graph);
+  printTable(graph);
 }
 
 void example2() {
