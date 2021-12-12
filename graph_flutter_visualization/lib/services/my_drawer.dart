@@ -12,9 +12,10 @@ class MyDrawer extends CustomPainter {
     var paint = Paint();
     paint.color = Colors.black;
     paint.strokeWidth = 5;
+    //canvas.drawPath(path, paint)
     canvas.drawLine(p1, p2, paint);
   }
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
+  bool shouldRepaint(CustomPainter oldDelegate) => true;
 }

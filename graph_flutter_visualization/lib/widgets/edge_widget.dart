@@ -20,6 +20,7 @@ class _EdgeWidget extends State<EdgeWidget> {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constrains) {
         return CustomPaint(
+            willChange: true,
             painter: MyDrawer(edge: edge),
             size: Size(constrains.maxWidth, constrains.maxHeight));
       },

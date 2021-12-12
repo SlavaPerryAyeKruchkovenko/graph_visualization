@@ -6,16 +6,23 @@ class Graph<num> {
   Graph(int nodesCount, this.isOriented) {
     _nodes = Iterable.generate(nodesCount).map((e) => Node<num>(e)).toList();
   }
+  int _edgeLenght = 0;
   Graph.def(this.isOriented);
   int get lenght => _nodes.length;
+  int get edgeLenght => _edgeLenght;
+
   Iterable<Node<num>> get nodes => _nodes;
-  Iterable<Edge<num>> get edges => isOriented
-      ? _nodes
-          .map((x) => x.incidentEdges)
-          .reduce((x, element) => x.toList() + element.toList())
-      : _nodes.map((x) => x.incidentEdges).reduce((x, element) =>
-          x.where((t) => element.every((element) => element != t)).toList() +
-          element.toList());
+  Iterable<Edge<num>> get edges => edgeLenght > 0
+      ? isOriented
+          ? _nodes
+              .map((x) => x.incidentEdges)
+              .reduce((x, element) => x.toList() + element.toList())
+          : _nodes.map((x) => x.incidentEdges).reduce((x, element) =>
+              x
+                  .where((t) => element.every((element) => element != t))
+                  .toList() +
+              element.toList())
+      : [];
 
   void addNode(value) {
     if (value is num) {
@@ -48,6 +55,7 @@ class Graph<num> {
 
   Edge<num> connect(Node<num> node1, Node<num> node2, num edgeValue) {
     var eadges = Node.connect<num>(node1, node2, this, edgeValue);
+    _edgeLenght += 1;
     if (isOriented) {
       node1._edges.add(eadges.item1);
     } else {
@@ -58,6 +66,7 @@ class Graph<num> {
   }
 
   void disconect(Edge<num> edge) {
+    _edgeLenght -= isOriented ? 2 : 1;
     Node.disconect(edge);
   }
 

@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:graph_flutter_visualization/widgets/edge_widget.dart';
@@ -23,6 +24,7 @@ class _GraphWidget extends State<GraphWidget> {
   double posy = 0;
   List<Widget> edges = [];
   Node<num>? selectedNode;
+
   void connectNodes(Node<num> node1, Node<num> node2, num value) {
     var edge = graph.connect(node1, node2, value);
 
@@ -31,6 +33,7 @@ class _GraphWidget extends State<GraphWidget> {
       for (var element in graph.nodes) {
         element.isSelected = false;
       }
+      selectedNode = null;
     });
   }
 
@@ -101,7 +104,7 @@ class _GraphWidget extends State<GraphWidget> {
                   ),
                 ))),
         ...List.generate(
-            graph.edges.length, (i) => EdgeWidget(graph.edges.elementAt(i)))
+            graph.edgeLenght, (i) => EdgeWidget(graph.edges.elementAt(i)))
       ],
     );
   }
