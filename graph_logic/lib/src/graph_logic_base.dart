@@ -28,7 +28,25 @@ class Graph<num> {
     }
   }
 
-  void connect(Node<num> node1, Node<num> node2, num edgeValue) {
+  void removeNode(value) {
+    void remove(Node<num> node) {
+      for (var edge in node.incidentEdges) {
+        disconect(edge);
+      }
+      _nodes.remove(node);
+    }
+
+    if (value is num) {
+      remove(this[value as int]);
+    }
+    if (value is Node<num>) {
+      remove(value);
+    } else {
+      throw FormatException("incorrect params");
+    }
+  }
+
+  Edge<num> connect(Node<num> node1, Node<num> node2, num edgeValue) {
     var eadges = Node.connect<num>(node1, node2, this, edgeValue);
     if (isOriented) {
       node1._edges.add(eadges.item1);
@@ -36,6 +54,7 @@ class Graph<num> {
       node1._edges.add(eadges.item1);
       node2._edges.add(eadges.item2);
     }
+    return eadges.item1;
   }
 
   void disconect(Edge<num> edge) {
@@ -73,7 +92,7 @@ class Node<num> {
   final List<Edge<num>> _edges = [];
   final num _number;
   bool isSelected = false;
-  Point location = Point(0, 0);
+  Point<double> location = Point(0, 0);
   int _id = 0;
   Node(this._number) {
     _id = _counter;
@@ -103,7 +122,7 @@ class Node<num> {
     return Tuple(edge1, edge2);
   }
 
-  static void disconect(Edge edge) {
+  static void disconect<num>(Edge<num> edge) {
     edge.from._edges.remove(edge);
     edge.to._edges.remove(edge);
   }
@@ -118,13 +137,20 @@ class Node<num> {
 }
 
 class Edge<num> {
+  static const int maxValue = 10000;
   bool isSelected = false;
   Point startLoc = Point(0, 0);
   Point finishLoc = Point(0, 0);
   final Node<num> from;
   final Node<num> to;
-  final num value;
-  Edge(this.from, this.to, this.value);
+  late final num value;
+  Edge(this.from, this.to, num value) {
+    if (value as int > maxValue) {
+      throw Exception("Incorect value of Node");
+    } else {
+      this.value = value;
+    }
+  }
   bool isIncident(Node<num> node) {
     return from == node || to == node;
   }
