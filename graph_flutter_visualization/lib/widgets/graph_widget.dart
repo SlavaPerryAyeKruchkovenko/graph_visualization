@@ -70,6 +70,8 @@ class _GraphWidget extends State<GraphWidget> {
     });
   }
 
+  Color greyColor = Colors.grey;
+  List<int> selectedSpots = [];
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -103,8 +105,6 @@ class _GraphWidget extends State<GraphWidget> {
                     ),
                   ),
                 ))),
-        ...List.generate(
-            graph.edgeLenght, (i) => EdgeWidget(graph.edges.elementAt(i)))
       ],
     );
   }
