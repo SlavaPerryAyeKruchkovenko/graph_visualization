@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:graph_flutter_visualization/services/my_drawer.dart';
 import 'package:graph_logic/graph_logic.dart';
 
@@ -8,22 +11,30 @@ class EdgeWidget extends StatefulWidget {
   EdgeWidget(this.edge, {Key? key}) : super(key: key);
   @override
   // ignore: no_logic_in_create_state
-  State<EdgeWidget> createState() => _EdgeWidget(edge);
+  State<EdgeWidget> createState() => _EdgeWidget();
 }
 
 class _EdgeWidget extends State<EdgeWidget> {
-  Edge<num> edge;
-  _EdgeWidget(this.edge);
-
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constrains) {
-        return CustomPaint(
-            willChange: true,
-            painter: MyDrawer(edge: edge),
-            size: Size(constrains.maxWidth, constrains.maxHeight));
-      },
+    return Positioned(
+      child: CustomPaint(
+          painter: Drawhorizontalline(
+              const Point(20, 20),
+              widget.edge.to.location -
+                  widget.edge.from.location +
+                  const Point(20, 20))),
     );
   }
 }
+/*Container(
+            child: Center(
+                child: Text(
+              widget.edge.value.toString(),
+              textAlign: TextAlign.center,
+            )),
+            decoration: BoxDecoration(
+              color: widget.edge.isSelected ? Colors.grey : Colors.black,
+              shape: BoxShape.rectangle,
+            ),
+          )*/

@@ -1,6 +1,6 @@
 name: graph_logic
 description: A starting point for Dart libraries or applications.
-version: 1.0.6н
+version: 1.0.6
 homepage: https://github.com/SlavaPerryAyeKruchkovenko/graph_visualization/tree/main/graph_logic
 repository: https://github.com/SlavaPerryAyeKruchkovenko/graph_visualization/tree/main/graph_logic
 environment:
@@ -13,3 +13,6 @@ environment:
 dev_dependencies:
   lints: ^1.0.0
   test: ^1.16.0
+  path_provider: ^1.6.27
+dependencies: 
+  json_serializable: ^6.1.1
