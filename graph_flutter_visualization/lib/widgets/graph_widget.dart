@@ -2,65 +2,27 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:graph_flutter_visualization/widgets/edge_widget.dart';
+import 'package:graph_flutter_visualization/widgets/node_widget.dart';
 import 'package:graph_logic/graph_logic.dart';
 
-// ignore: must_be_immutable
 class GraphWidget extends StatefulWidget {
-  Graph<num>? graph;
-  GraphWidget(bool isOriented, {Key? key}) : super(key: key) {
-    graph = Graph<num>.def(isOriented);
-  }
+  const GraphWidget({Key? key}) : super(key: key);
   @override
-  // ignore: no_logic_in_create_state
-  State<GraphWidget> createState() => _GraphWidget(graph as Graph<num>);
+  State<GraphWidget> createState() => _GraphWidget();
 }
 
 class _GraphWidget extends State<GraphWidget> {
-  final Graph<num> graph;
-
-  _GraphWidget(this.graph);
+  var graph = Graph<num>.def(false);
   double posx = 0;
   double posy = 0;
   List<Widget> edges = [];
-  Node<num>? selectedNode;
+  List<Widget> nodes = [];
+  late Function(Node<num>) removeNode;
+  late Function() callback;
 
-  void connectNodes(Node<num> node1, Node<num> node2, num value) {
-    var edge = graph.connect(node1, node2, value);
-
-    setState(() {
-      edges.add(EdgeWidget(edge));
-      for (var element in graph.nodes) {
-        element.isSelected = false;
-      }
-      selectedNode = null;
-    });
-  }
-
-  void deleteNode(Node<num> node) => {
-        setState(() {
-          graph.removeNode(node);
-        })
-      };
-  void selectNode(Node<num> node) => {
-        setState(() {
-          if (!node.isSelected) {
-            node.isSelected = true;
-            if (selectedNode != null) {
-              connectNodes(selectedNode as Node<num>, node, 2);
-            } else {
-              selectedNode = node;
-            }
-          } else {
-            node.isSelected = false;
-            selectedNode = null;
-          }
-        })
-      };
   void onTapDown(BuildContext context, TapDownDetails details) {
     final RenderBox? box = context.findRenderObject() as RenderBox?;
     final Offset localOffset = box!.globalToLocal(details.globalPosition);
-
     var node = Node<num>(0);
     posx = localOffset.dx;
     posy = localOffset.dy;
@@ -68,6 +30,30 @@ class _GraphWidget extends State<GraphWidget> {
       node.location = Point(posx, posy);
       graph.addNode(node);
     });
+  }
+
+  void addEdge(Node<num> node1, Node<num> node2) {
+    setState(() {
+      for (var element in graph.nodes) {
+        element.isSelected = false;
+      }
+      graph.connect(node1, node2, 2);
+    });
+  }
+
+  @override
+  void initState() {
+    callback = () {
+      setState(() {
+        deactivate();
+      });
+    };
+    removeNode = (x) {
+      setState(() {
+        graph.removeNode(x);
+      });
+    };
+    super.initState();
   }
 
   @override
@@ -83,28 +69,12 @@ class _GraphWidget extends State<GraphWidget> {
         ),
         ...List.generate(
             graph.lenght,
-            (i) => Positioned(
-                top: graph[i].location.y - 20,
-                left: graph[i].location.x - 20,
-                width: 40,
-                height: 40,
-                child: GestureDetector(
-                  onTap: () => selectNode(graph[i]),
-                  onDoubleTap: () => deleteNode(graph[i]),
-                  child: Container(
-                    child: Center(
-                        child: Text(
-                      graph[i].id.toString(),
-                      textAlign: TextAlign.center,
-                    )),
-                    decoration: BoxDecoration(
-                      color: graph[i].isSelected ? Colors.grey : Colors.purple,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ))),
-        ...List.generate(
-            graph.edgeLenght, (i) => EdgeWidget(graph.edges.elementAt(i)))
+            (i) => NodeWidget(
+                  node: graph[i],
+                  removeNode: removeNode,
+                  addEdge: addEdge,
+                  callback: callback,
+                )),
       ],
     );
   }

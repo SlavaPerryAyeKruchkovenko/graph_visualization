@@ -1,4 +1,4 @@
-import 'dart:math';
+import 'package:json_annotation/json_annotation.dart';
 
 class Graph<num> {
   final bool isOriented;
@@ -97,16 +97,30 @@ class Graph<num> {
   }
 }
 
+@JsonSerializable()
 class Node<num> {
   final List<Edge<num>> _edges = [];
-  final num _number;
+  late final num _number;
   bool isSelected = false;
-  Point<double> location = Point(0, 0);
+  Tuple<double, double> location = Tuple(0, 0);
   int _id = 0;
   Node(this._number) {
     _id = _counter;
     _counter++;
   }
+  Node.fromJson(Map<String, dynamic> json) {
+    isSelected = json['isSelected'];
+    location = json['location'];
+    _id = json['id'];
+    _number = json['number'];
+  }
+
+  Map<String, dynamic> toJson() => {
+        'isSelected': isSelected,
+        'location': location.toJson,
+        'id': _id,
+        'number': _number,
+      };
   num get number => _number;
   int get id => _id;
   Iterable<Node<num>> get incidentNodes => _edges.map((e) => e.otherNode(this));
@@ -145,13 +159,12 @@ class Node<num> {
   int get hashCode => _id;
 }
 
+@JsonSerializable()
 class Edge<num> {
   static const int maxValue = 10000;
   bool isSelected = false;
-  Point startLoc = Point(0, 0);
-  Point finishLoc = Point(0, 0);
-  final Node<num> from;
-  final Node<num> to;
+  late final Node<num> from;
+  late final Node<num> to;
   late final num value;
   @override
   int get hashCode => to.hashCode;
@@ -162,6 +175,21 @@ class Edge<num> {
       this.value = value;
     }
   }
+
+  Edge.fromJson(Map<String, dynamic> json) {
+    isSelected = json['isSelected'];
+    to = json['to'];
+    from = json['from'];
+    value = json['value'];
+  }
+
+  Map<String, dynamic> toJson() => {
+        'isSelected': isSelected,
+        'to': to.toJson(),
+        'from': from.toJson(),
+        'value': value,
+      };
+
   bool isIncident(Node<num> node) {
     return from == node || to == node;
   }
@@ -188,6 +216,16 @@ class Edge<num> {
 
 class Tuple<T1, T2> {
   Tuple(this.item1, this.item2);
-  T1 item1;
-  T2 item2;
+
+  Tuple.fromJson(Map<String, dynamic> json) {
+    item1 = json['item1'];
+    item2 = json['item2'];
+  }
+
+  Map<String, dynamic> toJson() => {
+        'item1': item1,
+        'item2': item2,
+      };
+  late T1 item1;
+  late T2 item2;
 }
