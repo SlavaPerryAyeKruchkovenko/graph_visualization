@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:graph_logic/src/exstansions.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 class Graph<num> {
@@ -102,7 +105,7 @@ class Node<num> {
   final List<Edge<num>> _edges = [];
   late final num _number;
   bool isSelected = false;
-  Tuple<double, double> location = Tuple(0, 0);
+  Point<double> location = Point(0, 0);
   int _id = 0;
   Node(this._number) {
     _id = _counter;

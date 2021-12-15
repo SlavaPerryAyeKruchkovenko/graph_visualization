@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:graph_logic/graph_logic.dart';
 
 extension GraphExtension on Graph<num> {
@@ -40,4 +42,11 @@ extension ListExtension on List<List<num>> {
       return graph;
     }
   }
+}
+
+extension PointExtension on Point<double> {
+  Map<String, dynamic> get toJson => {
+        'x': x,
+        'y': y,
+      };
 }

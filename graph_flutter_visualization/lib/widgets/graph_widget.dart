@@ -17,7 +17,6 @@ class _GraphWidget extends State<GraphWidget> {
   double posy = 0;
   List<Widget> edges = [];
   List<Widget> nodes = [];
-  late Function(Node<num>) removeNode;
   late Function() callback;
 
   void onTapDown(BuildContext context, TapDownDetails details) {
@@ -48,11 +47,6 @@ class _GraphWidget extends State<GraphWidget> {
         deactivate();
       });
     };
-    removeNode = (x) {
-      setState(() {
-        graph.removeNode(x);
-      });
-    };
     super.initState();
   }
 
@@ -71,8 +65,7 @@ class _GraphWidget extends State<GraphWidget> {
             graph.lenght,
             (i) => NodeWidget(
                   node: graph[i],
-                  removeNode: removeNode,
-                  addEdge: addEdge,
+                  graph: graph,
                   callback: callback,
                 )),
       ],
