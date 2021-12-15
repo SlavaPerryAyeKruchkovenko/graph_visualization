@@ -1,4 +1,4 @@
-import 'dart:math';
+import 'package:json_annotation/json_annotation.dart';
 
 class Graph<num> {
   final bool isOriented;
@@ -6,16 +6,23 @@ class Graph<num> {
   Graph(int nodesCount, this.isOriented) {
     _nodes = Iterable.generate(nodesCount).map((e) => Node<num>(e)).toList();
   }
+  int _edgeLenght = 0;
   Graph.def(this.isOriented);
   int get lenght => _nodes.length;
+  int get edgeLenght => _edgeLenght;
+
   Iterable<Node<num>> get nodes => _nodes;
-  Iterable<Edge<num>> get edges => [
-        ...{
-          ..._nodes
+  Iterable<Edge<num>> get edges => edgeLenght > 0
+      ? isOriented
+          ? _nodes
               .map((x) => x.incidentEdges)
               .reduce((x, element) => x.toList() + element.toList())
-        }
-      ];
+          : _nodes.map((x) => x.incidentEdges).reduce((x, element) =>
+              x
+                  .where((t) => element.every((element) => element != t))
+                  .toList() +
+              element.toList())
+      : [];
 
   void addNode(value) {
     if (value is num) {
@@ -28,17 +35,38 @@ class Graph<num> {
     }
   }
 
-  void connect(Node<num> node1, Node<num> node2, num edgeValue) {
+  void removeNode(value) {
+    void remove(Node<num> node) {
+      for (var edge in node.incidentEdges) {
+        disconect(edge);
+      }
+      _nodes.remove(node);
+    }
+
+    if (value is num) {
+      remove(this[value as int]);
+    }
+    if (value is Node<num>) {
+      remove(value);
+    } else {
+      throw FormatException("incorrect params");
+    }
+  }
+
+  Edge<num> connect(Node<num> node1, Node<num> node2, num edgeValue) {
     var eadges = Node.connect<num>(node1, node2, this, edgeValue);
+    _edgeLenght += 1;
     if (isOriented) {
       node1._edges.add(eadges.item1);
     } else {
       node1._edges.add(eadges.item1);
       node2._edges.add(eadges.item2);
     }
+    return eadges.item1;
   }
 
   void disconect(Edge<num> edge) {
+    _edgeLenght -= isOriented ? 2 : 1;
     Node.disconect(edge);
   }
 
@@ -69,16 +97,30 @@ class Graph<num> {
   }
 }
 
+@JsonSerializable()
 class Node<num> {
   final List<Edge<num>> _edges = [];
-  final num _number;
+  late final num _number;
   bool isSelected = false;
-  Point location = Point(0, 0);
+  Tuple<double, double> location = Tuple(0, 0);
   int _id = 0;
   Node(this._number) {
     _id = _counter;
     _counter++;
   }
+  Node.fromJson(Map<String, dynamic> json) {
+    isSelected = json['isSelected'];
+    location = json['location'];
+    _id = json['id'];
+    _number = json['number'];
+  }
+
+  Map<String, dynamic> toJson() => {
+        'isSelected': isSelected,
+        'location': location.toJson,
+        'id': _id,
+        'number': _number,
+      };
   num get number => _number;
   int get id => _id;
   Iterable<Node<num>> get incidentNodes => _edges.map((e) => e.otherNode(this));
@@ -103,7 +145,7 @@ class Node<num> {
     return Tuple(edge1, edge2);
   }
 
-  static void disconect(Edge edge) {
+  static void disconect<num>(Edge<num> edge) {
     edge.from._edges.remove(edge);
     edge.to._edges.remove(edge);
   }
@@ -117,14 +159,37 @@ class Node<num> {
   int get hashCode => _id;
 }
 
+@JsonSerializable()
 class Edge<num> {
+  static const int maxValue = 10000;
   bool isSelected = false;
-  Point startLoc = Point(0, 0);
-  Point finishLoc = Point(0, 0);
-  final Node<num> from;
-  final Node<num> to;
-  final num value;
-  Edge(this.from, this.to, this.value);
+  late final Node<num> from;
+  late final Node<num> to;
+  late final num value;
+  @override
+  int get hashCode => to.hashCode;
+  Edge(this.from, this.to, num value) {
+    if (value as int > maxValue) {
+      throw Exception("Incorect value of Node");
+    } else {
+      this.value = value;
+    }
+  }
+
+  Edge.fromJson(Map<String, dynamic> json) {
+    isSelected = json['isSelected'];
+    to = json['to'];
+    from = json['from'];
+    value = json['value'];
+  }
+
+  Map<String, dynamic> toJson() => {
+        'isSelected': isSelected,
+        'to': to.toJson(),
+        'from': from.toJson(),
+        'value': value,
+      };
+
   bool isIncident(Node<num> node) {
     return from == node || to == node;
   }
@@ -140,10 +205,27 @@ class Edge<num> {
       throw FormatException("incorect value");
     }
   }
+
+  @override
+  bool operator ==(other) {
+    return other is Edge<num> &&
+        [other.to.id, other.from.id].contains(to.id) &&
+        [other.to.id, other.from.id].contains(from.id);
+  }
 }
 
 class Tuple<T1, T2> {
   Tuple(this.item1, this.item2);
-  T1 item1;
-  T2 item2;
+
+  Tuple.fromJson(Map<String, dynamic> json) {
+    item1 = json['item1'];
+    item2 = json['item2'];
+  }
+
+  Map<String, dynamic> toJson() => {
+        'item1': item1,
+        'item2': item2,
+      };
+  late T1 item1;
+  late T2 item2;
 }

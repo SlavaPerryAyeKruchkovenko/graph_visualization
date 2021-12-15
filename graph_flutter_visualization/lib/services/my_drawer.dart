@@ -1,12 +1,24 @@
+import 'dart:math';
 import 'package:flutter/cupertino.dart';
-import 'package:graph_logic/graph_logic.dart';
+import 'package:flutter/material.dart';
 
-class MyDrawer extends CustomPainter {
-  final Graph<num> graph;
-  MyDrawer({required this.graph});
-  @override
-  void paint(Canvas canvas, Size size) {}
+class Drawhorizontalline extends CustomPainter {
+  final Point<double> startPoint;
+  final Point<double> finishPoint;
+  Drawhorizontalline(this.startPoint, this.finishPoint);
+  final Paint _paint = Paint()
+    ..color = Colors.black
+    ..strokeWidth = 2
+    ..strokeCap = StrokeCap.round;
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
+  void paint(Canvas canvas, Size size) {
+    canvas.drawLine(Offset(startPoint.x, startPoint.y),
+        Offset(finishPoint.x, finishPoint.y), _paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return false;
+  }
 }

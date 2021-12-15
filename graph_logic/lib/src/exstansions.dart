@@ -11,7 +11,7 @@ extension GraphExtension on Graph<num> {
         return i == j
             ? Edge(Node(0), Node(0), 0)
             : edge.isEmpty
-                ? Edge(Node(0), Node(0), 100000)
+                ? Edge(Node(0), Node(0), Edge.maxValue)
                 : edge.first;
       }
 
