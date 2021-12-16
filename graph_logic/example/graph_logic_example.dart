@@ -5,7 +5,7 @@ import 'package:graph_logic/graph_logic.dart';
 import 'package:graph_logic/src/exstansions.dart';
 
 void main() {
-  example5();
+  example4();
 }
 
 void example1() {
@@ -63,7 +63,7 @@ void example4() {
   ];
   var values = [19, 20, 12, 9];
   var graph = Graph.makeGraph<int>(incedentNodes, values, isOriented: false);
-
+  graph.removeNode(nodes[0]);
   var path =
       "D:\\repoditory\\graph_visualization\\graph_logic\\example\\example.json";
   var file = File(path);
@@ -77,7 +77,7 @@ void example5() {
   var path =
       "D:\\repoditory\\graph_visualization\\graph_logic\\example\\example.json";
   var file = File(path);
-  var graph = json.decode(file.readAsStringSync());
+  Graph<num> graph = json.decode(file.readAsStringSync());
   printTable(graph);
 }
 
