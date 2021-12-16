@@ -1,4 +1,6 @@
-import 'package:json_annotation/json_annotation.dart';
+import 'dart:math';
+
+import 'package:graph_logic/src/exstansions.dart';
 
 class Graph<num> {
   final bool isOriented;
@@ -37,7 +39,7 @@ class Graph<num> {
 
   void removeNode(value) {
     void remove(Node<num> node) {
-      for (var edge in node.incidentEdges) {
+      for (var edge in node.incidentEdges.toList()) {
         disconect(edge);
       }
       _nodes.remove(node);
@@ -97,12 +99,11 @@ class Graph<num> {
   }
 }
 
-@JsonSerializable()
 class Node<num> {
   final List<Edge<num>> _edges = [];
   late final num _number;
   bool isSelected = false;
-  Tuple<double, double> location = Tuple(0, 0);
+  Point<double> location = Point(0, 0);
   int _id = 0;
   Node(this._number) {
     _id = _counter;
@@ -159,7 +160,6 @@ class Node<num> {
   int get hashCode => _id;
 }
 
-@JsonSerializable()
 class Edge<num> {
   static const int maxValue = 10000;
   bool isSelected = false;

@@ -7,17 +7,15 @@ import 'package:graph_logic/graph_logic.dart';
 import 'edge_widget.dart';
 
 class NodeWidget extends ImplicitlyAnimatedWidget {
-  final Function(Node<num>)? removeNode;
-  final Function(Node<num>, Node<num>)? addEdge;
   final Function()? callback;
   final Node<num> node;
+  final Graph<num> graph;
   const NodeWidget({
     Key? key,
     Duration swapAnimationDuration = const Duration(milliseconds: 150),
     Curve swapAnimationCurve = Curves.linear,
+    required this.graph,
     required this.node,
-    this.removeNode,
-    this.addEdge,
     this.callback,
   }) : super(
             key: key,
@@ -32,8 +30,9 @@ class _NodeWidget extends AnimatedWidgetBaseState<NodeWidget> {
   static Node<num>? _selectedNode;
   void deleteNode(Node<num> node) => {
         setState(() {
-          if (widget.removeNode != null) {
-            widget.removeNode!.call(node);
+          widget.graph.removeNode(node);
+          if (widget.callback != null) {
+            widget.callback!.call();
           }
         })
       };
@@ -44,9 +43,11 @@ class _NodeWidget extends AnimatedWidgetBaseState<NodeWidget> {
               node.isSelected = true;
               _selectedNode = node;
             } else {
-              if (widget.addEdge != null) {
-                widget.addEdge!.call(_selectedNode!, node);
-                _selectedNode = null;
+              _selectedNode!.isSelected = false;
+              widget.graph.connect(_selectedNode!, node, 2);
+              _selectedNode = null;
+              if (widget.callback != null) {
+                widget.callback!.call();
               }
             }
           } else {
@@ -83,6 +84,9 @@ class _NodeWidget extends AnimatedWidgetBaseState<NodeWidget> {
                       child: Text(
                     widget.node.id.toString(),
                     textAlign: TextAlign.center,
+                    textScaleFactor: 1.2,
+                    style: const TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
                   )),
                   decoration: BoxDecoration(
                     color: widget.node.isSelected ? Colors.grey : Colors.purple,
