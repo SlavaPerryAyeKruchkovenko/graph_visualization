@@ -19,7 +19,6 @@ class _GraphWidget extends State<GraphWidget> {
   double posy = 0;
   List<Widget> edges = [];
   List<Widget> nodes = [];
-  late Function() callback;
 
   void onTapDown(BuildContext context, TapDownDetails details) {
     final RenderBox? box = context.findRenderObject() as RenderBox?;
@@ -33,6 +32,12 @@ class _GraphWidget extends State<GraphWidget> {
     });
   }
 
+  void callback() {
+    setState(() {
+      deactivate();
+    });
+  }
+
   void addEdge(Node<num> node1, Node<num> node2) {
     setState(() {
       for (var element in graph.nodes) {
@@ -40,16 +45,6 @@ class _GraphWidget extends State<GraphWidget> {
       }
       graph.connect(node1, node2, 2);
     });
-  }
-
-  @override
-  void initState() {
-    callback = () {
-      setState(() {
-        deactivate();
-      });
-    };
-    super.initState();
   }
 
   @override
@@ -71,9 +66,12 @@ class _GraphWidget extends State<GraphWidget> {
                   callback: callback,
                 )),
         ...List.generate(
-          graph.edgeLenght,
-          (i) => EdgeWidget(graph.edges.toList()[i]),
-        )
+            graph.edgeLenght,
+            (i) => EdgeWidget(
+                  edge: graph.edges.toList()[i],
+                  graph: graph,
+                  callback: callback,
+                )),
       ],
     );
   }
