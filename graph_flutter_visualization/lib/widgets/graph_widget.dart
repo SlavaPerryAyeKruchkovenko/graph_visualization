@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:graph_flutter_visualization/widgets/node_widget.dart';
 import 'package:graph_logic/graph_logic.dart';
 
+import 'edge_widget.dart';
+
 class GraphWidget extends StatefulWidget {
   const GraphWidget({Key? key}) : super(key: key);
   @override
@@ -68,6 +70,10 @@ class _GraphWidget extends State<GraphWidget> {
                   graph: graph,
                   callback: callback,
                 )),
+        ...List.generate(
+          graph.edgeLenght,
+          (i) => EdgeWidget(graph.edges.toList()[i]),
+        )
       ],
     );
   }

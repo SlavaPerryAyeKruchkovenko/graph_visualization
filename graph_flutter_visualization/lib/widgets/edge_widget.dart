@@ -18,16 +18,58 @@ class _EdgeWidget extends State<EdgeWidget> {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      child: CustomPaint(
-          painter: Drawhorizontalline(
-              const Point(20, 20),
-              widget.edge.to.location -
-                  widget.edge.from.location +
-                  const Point(20, 20))),
-    );
+        width: 20,
+        height: 20,
+        top: widget.edge.to.location.y +
+            (widget.edge.from.location.y - widget.edge.to.location.y) / 2 -
+            20,
+        left: widget.edge.to.location.x +
+            (widget.edge.from.location.x - widget.edge.to.location.x) / 2,
+        child: Stack(
+          children: [
+            Container(
+              child: Center(
+                  child: Text(
+                widget.edge.value.toString(),
+                textAlign: TextAlign.center,
+                textScaleFactor: 1.2,
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold),
+              )),
+              decoration: BoxDecoration(
+                color: widget.edge.isSelected ? Colors.yellow : Colors.red,
+                shape: BoxShape.circle,
+              ),
+            ),
+            CustomPaint(
+              painter: Drawhorizontalline(
+                  Point(
+                      -(widget.edge.from.location.x -
+                              widget.edge.to.location.x) /
+                          2,
+                      -(widget.edge.from.location.y -
+                                  widget.edge.to.location.y) /
+                              2 +
+                          20),
+                  Point(
+                      (widget.edge.from.location.x -
+                              widget.edge.to.location.x) /
+                          2,
+                      (widget.edge.from.location.y -
+                                  widget.edge.to.location.y) /
+                              2 +
+                          20)),
+            )
+          ],
+        ));
   }
 }
-/*Container(
+/*child: Stack(
+          children: [
+            CustomPaint(
+                painter: Drawhorizontalline(const Point(0, 0),
+                    widget.edge.to.location - widget.edge.from.location)),
+Container(
             child: Center(
                 child: Text(
               widget.edge.value.toString(),

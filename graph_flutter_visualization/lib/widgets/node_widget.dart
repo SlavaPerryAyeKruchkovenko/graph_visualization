@@ -4,8 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:graph_logic/graph_logic.dart';
 
-import 'edge_widget.dart';
-
 class NodeWidget extends ImplicitlyAnimatedWidget {
   final Function()? callback;
   final Node<num> node;
@@ -74,31 +72,24 @@ class _NodeWidget extends AnimatedWidgetBaseState<NodeWidget> {
         width: 40,
         height: 40,
         child: GestureDetector(
-            onPanUpdate: (details) => moveNode(context, details),
-            onTap: () => selectNode(widget.node),
-            onDoubleTap: () => deleteNode(widget.node),
-            child: Stack(
-              children: [
-                Container(
-                  child: Center(
-                      child: Text(
-                    widget.node.id.toString(),
-                    textAlign: TextAlign.center,
-                    textScaleFactor: 1.2,
-                    style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
-                  )),
-                  decoration: BoxDecoration(
-                    color: widget.node.isSelected ? Colors.grey : Colors.purple,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                ...List.generate(
-                  widget.node.incidentEdges.length,
-                  (i) => EdgeWidget(widget.node.incidentEdges.toList()[i]),
-                )
-              ],
-            )));
+          onPanUpdate: (details) => moveNode(context, details),
+          onTap: () => selectNode(widget.node),
+          onDoubleTap: () => deleteNode(widget.node),
+          child: Container(
+            child: Center(
+                child: Text(
+              widget.node.id.toString(),
+              textAlign: TextAlign.center,
+              textScaleFactor: 1.2,
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            )),
+            decoration: BoxDecoration(
+              color: widget.node.isSelected ? Colors.grey : Colors.purple,
+              shape: BoxShape.circle,
+            ),
+          ),
+        ));
   }
 
   @override
