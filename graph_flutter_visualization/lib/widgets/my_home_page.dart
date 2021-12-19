@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:graph_flutter_visualization/widgets/dialog_ui.dart';
 import 'package:graph_flutter_visualization/widgets/graph_widget.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -15,7 +14,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return const Scaffold(
       backgroundColor: Colors.blue,
-      body: DialogForm(),
+      body: GraphWidget(),
     );
   }
 }

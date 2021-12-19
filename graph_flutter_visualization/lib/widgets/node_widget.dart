@@ -8,12 +8,14 @@ class NodeWidget extends ImplicitlyAnimatedWidget {
   final Function()? callback;
   final Node<num> node;
   final Graph<num> graph;
+  final Function(Node<num>, Node<num>) addEdge;
   const NodeWidget({
     Key? key,
     Duration swapAnimationDuration = const Duration(milliseconds: 150),
     Curve swapAnimationCurve = Curves.linear,
     required this.graph,
     required this.node,
+    required this.addEdge,
     this.callback,
   }) : super(
             key: key,
@@ -26,7 +28,7 @@ class NodeWidget extends ImplicitlyAnimatedWidget {
 
 class _NodeWidget extends AnimatedWidgetBaseState<NodeWidget> {
   static Node<num>? _selectedNode;
-  void deleteNode(Node<num> node) => {
+  void _deleteNode(Node<num> node) => {
         setState(() {
           widget.graph.removeNode(node);
           if (widget.callback != null) {
@@ -34,15 +36,16 @@ class _NodeWidget extends AnimatedWidgetBaseState<NodeWidget> {
           }
         })
       };
-  void selectNode(Node<num> node) => {
+  void _selectNode(Node<num> node) => {
         setState(() {
           if (!node.isSelected) {
-            if (_selectedNode == null) {
+            if (_selectedNode == null ||
+                widget.graph.nodes.any((node) => node.isSelected)) {
               node.isSelected = true;
               _selectedNode = node;
             } else {
               _selectedNode!.isSelected = false;
-              widget.graph.connect(_selectedNode!, node, 2);
+              widget.addEdge.call(_selectedNode!, node);
               _selectedNode = null;
               if (widget.callback != null) {
                 widget.callback!.call();
@@ -54,7 +57,7 @@ class _NodeWidget extends AnimatedWidgetBaseState<NodeWidget> {
           }
         })
       };
-  void moveNode(BuildContext context, DragUpdateDetails details) => {
+  void _moveNode(BuildContext context, DragUpdateDetails details) => {
         setState(() {
           final Offset local = details.globalPosition;
           widget.node.location = Point(local.dx, local.dy);
@@ -72,9 +75,9 @@ class _NodeWidget extends AnimatedWidgetBaseState<NodeWidget> {
         width: 40,
         height: 40,
         child: GestureDetector(
-          onPanUpdate: (details) => moveNode(context, details),
-          onTap: () => selectNode(widget.node),
-          onDoubleTap: () => deleteNode(widget.node),
+          onPanUpdate: (details) => _moveNode(context, details),
+          onTap: () => _selectNode(widget.node),
+          onDoubleTap: () => _deleteNode(widget.node),
           child: Container(
             child: Center(
                 child: Text(

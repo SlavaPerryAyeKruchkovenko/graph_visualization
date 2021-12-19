@@ -21,7 +21,7 @@ class EdgeWidget extends StatefulWidget {
 }
 
 class _EdgeWidget extends State<EdgeWidget> {
-  void deleteEdge() {
+  void _deleteEdge() {
     setState(() {
       widget.graph.disconect(widget.edge);
       if (widget.callback != null) {
@@ -44,7 +44,7 @@ class _EdgeWidget extends State<EdgeWidget> {
         child: Stack(
           children: [
             GestureDetector(
-              onDoubleTap: deleteEdge,
+              onDoubleTap: _deleteEdge,
               child: Container(
                 child: Center(
                     child: Text(
