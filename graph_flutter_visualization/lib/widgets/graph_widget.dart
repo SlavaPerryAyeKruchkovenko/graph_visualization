@@ -1,13 +1,18 @@
 import 'dart:collection';
+import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:graph_flutter_visualization/services/converter.dart';
 import 'package:graph_flutter_visualization/widgets/menu_setting.dart';
 import 'package:graph_flutter_visualization/widgets/node_widget.dart';
 import 'package:graph_logic/graph_logic.dart';
 import 'package:stack/stack.dart' as col;
 import 'edge_widget.dart';
+import 'package:file_picker/file_picker.dart';
+
+import 'message_box.dart';
 
 class GraphWidget extends StatefulWidget {
   const GraphWidget({Key? key}) : super(key: key);
@@ -40,6 +45,14 @@ class _GraphWidget extends State<GraphWidget> {
     });
   }
 
+  void _showAlertDialog(BuildContext context, String text) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return MessangeBox(text: text);
+        });
+  }
+
   void _showSettingsPanel() {
     showModalBottomSheet(
         context: context,
@@ -47,13 +60,45 @@ class _GraphWidget extends State<GraphWidget> {
           return Menu(
             depthSearch: () => _graphBypass(_depthSearch),
             breadthSearch: () => _graphBypass(_breadthSearch),
+            openSubtitles: () {},
+            saveFile: () => _saveFile(),
+            uploadFile: () => uploadFile(),
           );
         });
+  }
+
+  void _saveFile() async {
+    String? outputFile = await FilePicker.platform.saveFile(
+      dialogTitle: 'Please select an output file:',
+      fileName: 'output-file.pdf',
+    );
+
+    if (outputFile == null) {
+      // User canceled the picker
+    }
+  }
+
+  void uploadFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    var a = result!.files.first.path;
+    if (result != null) {
+      File file = File(result.files.first.path!);
+      if (file.path.contains(".txt")) {
+        var text = await file.readAsString();
+        setState(() {
+          graph = text.convertToGraph(false);
+        });
+      } else if (file.path.contains(".json")) {
+        //more
+      }
+    }
   }
 
   void _graphBypass(Function(Node<num>) action) {
     if (graph.nodes.any((node) => node.isSelected) && !_isRun) {
       action.call(graph.nodes.where((node) => node.isSelected).first);
+    } else {
+      _showAlertDialog(context, "You don't select node.");
     }
   }
 
@@ -141,6 +186,9 @@ class _GraphWidget extends State<GraphWidget> {
         graph.connect(node1, node2, 2 //value
             );
       });
+    } else {
+      _showAlertDialog(
+          context, "this is edge is exist, please delete and make new");
     }
   }
 

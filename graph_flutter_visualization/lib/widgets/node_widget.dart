@@ -39,17 +39,17 @@ class _NodeWidget extends AnimatedWidgetBaseState<NodeWidget> {
   void _selectNode(Node<num> node) => {
         setState(() {
           if (!node.isSelected) {
-            if (_selectedNode == null ||
+            if (_selectedNode != null &&
                 widget.graph.nodes.any((node) => node.isSelected)) {
-              node.isSelected = true;
-              _selectedNode = node;
-            } else {
               _selectedNode!.isSelected = false;
               widget.addEdge.call(_selectedNode!, node);
               _selectedNode = null;
               if (widget.callback != null) {
                 widget.callback!.call();
               }
+            } else {
+              node.isSelected = true;
+              _selectedNode = node;
             }
           } else {
             node.isSelected = false;
