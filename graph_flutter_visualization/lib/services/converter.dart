@@ -16,7 +16,7 @@ extension Converter on String {
         }
       }
     }
-    var points = arrays[1].split('\n');
+    var points = arrays[1].trim().split('\n');
     for (int i = 0; i < points.length; i++) {
       var info = points[i].trim().split(' ');
       var res = int.tryParse(info[0]);

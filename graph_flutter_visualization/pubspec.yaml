@@ -28,9 +28,8 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   file_picker: ^4.3.0
-  cloud_firestore:
-  firebase_core:
   stack: ^0.2.1
+  path_provider: ^2.0.8
   flutter:
     sdk: flutter
 
