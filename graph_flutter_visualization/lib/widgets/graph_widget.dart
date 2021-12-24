@@ -7,12 +7,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:graph_flutter_visualization/models/node_state.dart';
 import 'package:graph_flutter_visualization/services/converter.dart';
 import 'package:graph_flutter_visualization/widgets/dialog_ui.dart';
 import 'package:graph_flutter_visualization/widgets/menu_setting.dart';
 import 'package:graph_flutter_visualization/widgets/node_widget.dart';
 import 'package:graph_logic/graph_logic.dart';
-import 'package:stack/stack.dart' as col;
 import 'edge_widget.dart';
 import 'package:file_picker/file_picker.dart';
 import 'message_box.dart';
@@ -28,11 +28,21 @@ class _GraphWidget extends State<GraphWidget> {
   double posx = 0;
   double posy = 0;
   String debugText = "";
-  List<Widget> edges = [];
-  List<Widget> nodes = [];
+  List<NodeWidget> _nodes = [];
   bool _isRun = false;
   bool _needSubtitles = false;
-  void _onTapDown(BuildContext context, TapDownDetails details) {
+  _changeNodes() {
+    _nodes = List.generate(
+        graph.lenght,
+        (i) => NodeWidget(
+              node: graph[i],
+              graph: graph,
+              addEdge: _addEdge,
+              callback: callback,
+            ));
+  }
+
+  _onTapDown(BuildContext context, TapDownDetails details) {
     final RenderBox? box = context.findRenderObject() as RenderBox?;
     final Offset localOffset = box!.globalToLocal(details.globalPosition);
     var node = Node<num>(0);
@@ -41,16 +51,18 @@ class _GraphWidget extends State<GraphWidget> {
     setState(() {
       node.location = Point(posx, posy);
       graph.addNode(node);
+      _changeNodes();
     });
   }
 
-  void callback() {
+  callback() {
     setState(() {
       deactivate();
+      _changeNodes();
     });
   }
 
-  void _showAlertDialog(BuildContext context, String text) {
+  _showAlertDialog(BuildContext context, String text) {
     showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -58,7 +70,7 @@ class _GraphWidget extends State<GraphWidget> {
         });
   }
 
-  void _showSettingsPanel() {
+  _showSettingsPanel() {
     showModalBottomSheet(
         context: context,
         builder: (context) {
@@ -67,19 +79,18 @@ class _GraphWidget extends State<GraphWidget> {
             breadthSearch: () => _graphBypass(_breadthSearch),
             openSubtitles: () => _openSubtitles(),
             saveFile: () => _saveFile(),
-            uploadFile: () => uploadFile(),
+            uploadFile: () => _uploadFile(),
           );
         });
   }
 
-  void _openSubtitles() {
+  _openSubtitles() {
     setState(() {
       _needSubtitles = !_needSubtitles;
     });
   }
 
-  void _saveFile() async {
-    //FilePickerResult? result = await FilePicker.platform.pickFiles();
+  _saveFile() async {
     String? outputFile = await FilePicker.platform.saveFile(
       dialogTitle: 'Please select an output file:',
       fileName: 'output-file.pdf',
@@ -89,7 +100,7 @@ class _GraphWidget extends State<GraphWidget> {
     }
   }
 
-  void uploadFile() async {
+  _uploadFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
     if (kIsWeb) {
       if (result != null) {
@@ -119,80 +130,45 @@ class _GraphWidget extends State<GraphWidget> {
     }
   }
 
-  void _graphBypass(Function(Node<num>) action) {
-    if (graph.nodes.any((node) => node.isSelected) && !_isRun) {
+  _graphBypass(Function(Node<num>) action) {
+    if (_nodes.any((node) => node.state == NodeState.select) && !_isRun) {
       action.call(graph.nodes.where((node) => node.isSelected).first);
     } else {
       _showAlertDialog(context, "You don't select node.");
     }
   }
 
-  void _depthSearch(Node<num> startNode) async {
-    var text = "";
+  _depthSearch(Node<num> startNode) async {
     List<Node<num>> path = [];
     setState(() {
       _isRun = true;
     });
     var visited = HashSet<Node<num>>();
-    col.Stack<Node<num>> stack = col.Stack();
-    stack.push(startNode);
+    ListQueue<Node<num>> stack = ListQueue();
+    stack.addLast(startNode);
     while (stack.isNotEmpty) {
-      var node = stack.pop();
-      text = "\n Выбираем вершину ${node.id}";
-      debugPrint(text);
-      debugText += text;
+      var node = stack.removeLast();
+      _printText("\n Выбираем вершину ${node.id}");
       if (!visited.contains(node)) {
-        setState(() {
-          node.isSelected = true;
-        });
-
         visited.add(node);
         path.add(node);
-        text = "\n Посешаем вершину ${node.id}";
-        debugPrint(text);
-        setState(() {
-          debugText += text;
-        });
+        _printText("\n Посешаем вершину ${node.id}",
+            anotherFucntion: () => node.isSelected = true);
         await Future.delayed(const Duration(milliseconds: 1000));
-        text = "";
-        for (var node in node.incidentNodes.map((x) => x.id.toString())) {
-          text += " $node";
-        }
-        text = "\n\n находим вершины $text добаляем их в stack";
-        debugPrint(text);
-        setState(() {
-          debugText += text;
-          node.isSelected = false;
-        });
+        _printText(
+            "\n\n находим вершины ${_toString(node.incidentNodes)} добаляем их в stack",
+            anotherFucntion: () => node.isSelected = false);
+
         await Future.delayed(const Duration(milliseconds: 1000));
         for (var incidentNode in node.incidentNodes) {
-          stack.push(incidentNode);
+          stack.addLast(incidentNode);
         }
-        text = "";
-        for (var node in node.incidentNodes.map((x) => x.id.toString())) {
-          text += " $node";
-        }
-        text = "\n\n stack сейчас имеет вершины: $text ";
-        debugPrint(text);
-        setState(() {
-          debugText += text;
-        });
+        _printText("\n\n stack сейчас имеет вершины: ${_toString(stack)} ");
       } else {
-        text = "\n мы ее уже посешали";
-        debugPrint(text);
-        setState(() {
-          debugText += text;
-        });
+        _printText("\n мы ее уже посешали");
       }
     }
-    text = "";
-    for (var node in path.map((x) => x.id.toString())) {
-      text += " $node";
-    }
-    text = "\n конечный путь :$text";
-    debugPrint(text);
-    setState(() {
-      debugText += text;
+    _printText("\n конечный путь :${_toString(path)}", anotherFucntion: () {
       for (var node in graph.nodes) {
         node.isSelected = false;
       }
@@ -200,8 +176,25 @@ class _GraphWidget extends State<GraphWidget> {
     });
   }
 
-  void _breadthSearch(Node<num> startNode) async {
+  _printText(text, {Function()? anotherFucntion}) {
+    debugPrint(text);
+    setState(() {
+      if (anotherFucntion != null) {
+        anotherFucntion.call();
+      }
+      debugText += text;
+    });
+  }
+
+  String _toString(Iterable nodes) {
     var text = "";
+    for (var node in nodes.map((x) => x.id.toString())) {
+      text += " $node";
+    }
+    return text;
+  }
+
+  _breadthSearch(Node<num> startNode) async {
     List<Node<num>> path = [];
     setState(() {
       _isRun = true;
@@ -211,63 +204,30 @@ class _GraphWidget extends State<GraphWidget> {
     queue.add(startNode);
     while (queue.isNotEmpty) {
       var node = queue.first;
-      text = "\n Выбираем вершину ${node.id}";
-      debugPrint(text);
-      debugText += text;
+      _printText("\n Выбираем вершину ${node.id}");
       queue.removeFirst();
       if (!visited.contains(node)) {
         setState(() {
           node.isSelected = true;
         });
-
         visited.add(node);
-        text = "\n Посешаем вершину ${node.id}";
-        debugPrint(text);
-        setState(() {
-          debugText += text;
-        });
+        _printText("\n Посешаем вершину ${node.id}");
         path.add(node);
         await Future.delayed(const Duration(milliseconds: 1000));
-        text = "";
-        for (var node in node.incidentNodes.map((x) => x.id.toString())) {
-          text += " $node";
-        }
-        text = "\n\n находим вершины $text добаляем их в очередь";
-        debugPrint(text);
-        setState(() {
-          node.isSelected = false;
-          debugText += text;
-        });
+        _printText(
+            "\n\nНаходим вершины ${_toString(node.incidentNodes)} помешаем их в очередь",
+            anotherFucntion: () => node.isSelected = false);
         await Future.delayed(const Duration(milliseconds: 1000));
         for (var incidentNode in node.incidentNodes) {
           queue.add(incidentNode);
         }
-        text = "";
-        for (var node in node.incidentNodes.map((x) => x.id.toString())) {
-          text += " $node";
-        }
-        text = "\n\n очередь сейчас имеет вершины: $text ";
-        debugPrint(text);
-        setState(() {
-          debugText += text;
-        });
+        _printText("\n\n очередь сейчас имеет вершины: ${_toString(queue)} ");
       } else {
-        text = "\n мы ее уже посешали";
-        debugPrint(text);
-        setState(() {
-          debugText += text;
-        });
-        await Future.delayed(const Duration(milliseconds: 500));
+        _printText("\n мы ее уже посешали");
+        Future.delayed(const Duration(milliseconds: 500));
       }
     }
-    text = "";
-    for (var node in path.map((x) => x.id.toString())) {
-      text += " $node";
-    }
-    text = "\n конечный путь :$text";
-    debugPrint(text);
-    setState(() {
-      debugText += text;
+    _printText("\n конечный путь :${_toString(path)}", anotherFucntion: () {
       for (var node in graph.nodes) {
         node.isSelected = false;
       }
@@ -275,7 +235,7 @@ class _GraphWidget extends State<GraphWidget> {
     });
   }
 
-  void _addEdge(Node<num> node1, Node<num> node2) async {
+  _addEdge(Node<num> node1, Node<num> node2) async {
     if (graph.isOriented
         ? !graph.edges.any((node) => node.from == node1 && node.to == node2)
         : !graph.edges.any((node) =>
@@ -332,14 +292,7 @@ class _GraphWidget extends State<GraphWidget> {
                       ),
                     )))
             : const Text(""),
-        ...List.generate(
-            graph.lenght,
-            (i) => NodeWidget(
-                  node: graph[i],
-                  graph: graph,
-                  addEdge: _addEdge,
-                  callback: callback,
-                )),
+        ..._nodes,
         ...List.generate(
             graph.edgeLenght,
             (i) => EdgeWidget(

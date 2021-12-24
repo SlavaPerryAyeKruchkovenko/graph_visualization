@@ -2,14 +2,16 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:graph_flutter_visualization/models/node_state.dart';
 import 'package:graph_logic/graph_logic.dart';
 
+// ignore: must_be_immutable
 class NodeWidget extends ImplicitlyAnimatedWidget {
   final Function()? callback;
   final Node<num> node;
   final Graph<num> graph;
   final Function(Node<num>, Node<num>) addEdge;
-  const NodeWidget({
+  NodeWidget({
     Key? key,
     Duration swapAnimationDuration = const Duration(milliseconds: 150),
     Curve swapAnimationCurve = Curves.linear,
@@ -22,12 +24,15 @@ class NodeWidget extends ImplicitlyAnimatedWidget {
             duration: swapAnimationDuration,
             curve: swapAnimationCurve);
 
+  var _state = NodeState.basic;
+  NodeState get state => _state;
   @override
   _NodeWidget createState() => _NodeWidget();
 }
 
 class _NodeWidget extends AnimatedWidgetBaseState<NodeWidget> {
   static Node<num>? _selectedNode;
+
   void _deleteNode(Node<num> node) => {
         setState(() {
           widget.graph.removeNode(node);
@@ -36,28 +41,27 @@ class _NodeWidget extends AnimatedWidgetBaseState<NodeWidget> {
           }
         })
       };
-  void _selectNode(Node<num> node) => {
+
+  _selectNode(Node<num> node) => {
         setState(() {
-          if (!node.isSelected) {
-            if (_selectedNode != null &&
-                widget.graph.nodes.any((node) => node.isSelected)) {
-              _selectedNode!.isSelected = false;
+          if (widget._state == NodeState.basic) {
+            if (_selectedNode != null) {
               widget.addEdge.call(_selectedNode!, node);
               _selectedNode = null;
               if (widget.callback != null) {
                 widget.callback!.call();
               }
             } else {
-              node.isSelected = true;
+              widget._state = NodeState.select;
               _selectedNode = node;
             }
           } else {
-            node.isSelected = false;
+            widget._state = NodeState.basic;
             _selectedNode = null;
           }
         })
       };
-  void _moveNode(BuildContext context, DragUpdateDetails details) => {
+  _moveNode(BuildContext context, DragUpdateDetails details) => {
         setState(() {
           final Offset local = details.globalPosition;
           widget.node.location = Point(local.dx, local.dy);
@@ -66,6 +70,18 @@ class _NodeWidget extends AnimatedWidgetBaseState<NodeWidget> {
           }
         })
       };
+  Color _getColor() {
+    switch (widget._state) {
+      case NodeState.basic:
+        return Colors.purple;
+      case NodeState.select:
+        return Colors.grey;
+      case NodeState.passed:
+        return Colors.pink;
+      default:
+        return Colors.green;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +104,7 @@ class _NodeWidget extends AnimatedWidgetBaseState<NodeWidget> {
                   color: Colors.white, fontWeight: FontWeight.bold),
             )),
             decoration: BoxDecoration(
-              color: widget.node.isSelected ? Colors.grey : Colors.purple,
+              color: _getColor(),
               shape: BoxShape.circle,
             ),
           ),

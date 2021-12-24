@@ -1,18 +1,13 @@
-import 'dart:math';
-
-import 'package:graph_logic/src/exstansions.dart';
-
 class Graph<num> {
-  final bool isOriented;
+  late final bool isOriented;
+  int _edgeLenght = 0;
   List<Node<num>> _nodes = [];
   Graph(int nodesCount, this.isOriented) {
     _nodes = Iterable.generate(nodesCount).map((e) => Node<num>(e)).toList();
   }
-  int _edgeLenght = 0;
   Graph.def(this.isOriented);
   int get lenght => _nodes.length;
   int get edgeLenght => _edgeLenght;
-
   Iterable<Node<num>> get nodes => _nodes;
   Iterable<Edge<num>> get edges => edgeLenght > 0
       ? isOriented
@@ -61,8 +56,12 @@ class Graph<num> {
     if (isOriented) {
       node1._edges.add(eadges.item1);
     } else {
-      node1._edges.add(eadges.item1);
-      node2._edges.add(eadges.item2);
+      if (node1.id == node2.id) {
+        node1._edges.add(eadges.item1);
+      } else {
+        node1._edges.add(eadges.item1);
+        node2._edges.add(eadges.item2);
+      }
     }
     return eadges.item1;
   }
@@ -100,28 +99,14 @@ class Graph<num> {
 }
 
 class Node<num> {
-  final List<Edge<num>> _edges = [];
+  late final List<Edge<num>> _edges;
   late final num _number;
-  bool isSelected = false;
-  Point<double> location = Point(0, 0);
   int _id = 0;
   Node(this._number) {
     _id = _counter;
     _counter++;
+    _edges = [];
   }
-  Node.fromJson(Map<String, dynamic> json) {
-    isSelected = json['isSelected'];
-    location = json['location'];
-    _id = json['id'];
-    _number = json['number'];
-  }
-
-  Map<String, dynamic> toJson() => {
-        'isSelected': isSelected,
-        'location': location.toJson,
-        'id': _id,
-        'number': _number,
-      };
   num get number => _number;
   int get id => _id;
   Iterable<Node<num>> get incidentNodes => _edges.map((e) => e.otherNode(this));
@@ -162,7 +147,6 @@ class Node<num> {
 
 class Edge<num> {
   static const int maxValue = 10000;
-  bool isSelected = false;
   late final Node<num> from;
   late final Node<num> to;
   late final num value;
@@ -175,20 +159,6 @@ class Edge<num> {
       this.value = value;
     }
   }
-
-  Edge.fromJson(Map<String, dynamic> json) {
-    isSelected = json['isSelected'];
-    to = json['to'];
-    from = json['from'];
-    value = json['value'];
-  }
-
-  Map<String, dynamic> toJson() => {
-        'isSelected': isSelected,
-        'to': to.toJson(),
-        'from': from.toJson(),
-        'value': value,
-      };
 
   bool isIncident(Node<num> node) {
     return from == node || to == node;

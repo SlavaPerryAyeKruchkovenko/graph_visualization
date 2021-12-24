@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 import 'package:graph_logic/graph_logic.dart';
-import 'package:graph_logic/src/exstansions.dart';
 
 void main() {
   example4();
@@ -11,11 +9,6 @@ void main() {
 void example1() {
   var list = [0, 1, 2, 3, 4];
   var nodes = list.map((e) => Node(e)).toList();
-  nodes[0].location = Point(20, 20);
-  nodes[1].location = Point(50, 30);
-  nodes[2].location = Point(80, 50);
-  nodes[3].location = Point(40, 70);
-  nodes[4].location = Point(100, 10);
   List<Tuple<Node<int>, Node<int>>> incedentNodes = [
     Tuple(nodes[0], nodes[1]),
     Tuple(nodes[1], nodes[2]),
@@ -51,10 +44,6 @@ void example3() {
 void example4() {
   var list = [0, 1, 2, 3];
   var nodes = list.map((e) => Node(e)).toList();
-  nodes[0].location = Point(20, 20);
-  nodes[1].location = Point(50, 30);
-  nodes[2].location = Point(80, 50);
-  nodes[3].location = Point(40, 70);
   List<Tuple<Node<int>, Node<int>>> incedentNodes = [
     Tuple(nodes[0], nodes[1]),
     Tuple(nodes[1], nodes[2]),
@@ -67,7 +56,7 @@ void example4() {
   var path =
       "D:\\repoditory\\graph_visualization\\graph_logic\\example\\example.json";
   var file = File(path);
-  var text = json.encode(graph.edges.toList());
+  var text = json.encode(nodes);
   file.writeAsString(text);
 
   printTable(graph);
@@ -77,8 +66,10 @@ void example5() {
   var path =
       "D:\\repoditory\\graph_visualization\\graph_logic\\example\\example.json";
   var file = File(path);
-  Graph<num> graph = json.decode(file.readAsStringSync());
-  printTable(graph);
+  Graph<num> graph = Graph.fromJson(json.decode(file.readAsStringSync()));
+  var a = graph.toString();
+  print(a);
+  //printTable(graph);
 }
 
 void printTable(Graph<num> graph) {
