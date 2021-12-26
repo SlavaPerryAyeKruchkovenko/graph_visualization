@@ -1,7 +1,9 @@
+import 'dart:math';
+
 import 'package:graph_logic/graph_logic.dart';
 
 extension Converter on String {
-  Graph<num> convertToGraph(bool isOriented) {
+  Tuple<Graph<num>, Map<Node<num>, Point>> convertToGraph(bool isOriented) {
     var arrays = split(';');
     var matrix = arrays[0].split('\n');
     var graph = Graph<num>(matrix.length, isOriented);
@@ -15,15 +17,16 @@ extension Converter on String {
       }
     }
     var points = arrays[1].trim().split('\n');
+    Map<Node<num>, Point> map = {};
     for (int i = 0; i < points.length; i++) {
       var info = points[i].trim().split(' ');
       var res = int.tryParse(info[0]);
       var x = double.tryParse(info[1]);
       var y = double.tryParse(info[2]);
       if (res != null && x != null && y != null) {
-        //graph[res].location = Point(x, y);
+        map[graph[res]] = Point(x, y);
       }
     }
-    return graph;
+    return Tuple(graph, map);
   }
 }

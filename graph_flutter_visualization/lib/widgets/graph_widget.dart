@@ -18,6 +18,7 @@ import 'package:graph_logic/graph_logic.dart';
 import 'edge_widget.dart';
 import 'package:file_picker/file_picker.dart';
 import 'message_box.dart';
+import 'dart:html' as html;
 
 class GraphWidget extends StatefulWidget {
   const GraphWidget({Key? key}) : super(key: key);
@@ -121,13 +122,10 @@ class _GraphWidget extends State<GraphWidget> {
   }
 
   _saveFile() async {
-    String? outputFile = await FilePicker.platform.saveFile(
-      dialogTitle: 'Please select an output file:',
-      fileName: 'output-file.pdf',
-    );
-    if (outputFile == null) {
-      // User canceled the picker
-    }
+    var url = "C:\\Users\\Slava\\Downloads";
+    html.AnchorElement anchorElement = html.AnchorElement(href: url);
+    anchorElement.download = url;
+    anchorElement.click();
   }
 
   _uploadFile() async {
@@ -139,7 +137,25 @@ class _GraphWidget extends State<GraphWidget> {
           var text = utf8.decode(fileBytes!);
           debugPrint(text);
           setState(() {
-            graph = text.convertToGraph(false);
+            var tuple = text.convertToGraph(false);
+            graph = tuple.item1;
+            map = tuple.item2;
+            for (var node in graph.nodes) {
+              _nodes.add(NodeWidget(
+                map[node]!,
+                graph: graph,
+                node: node,
+                addEdge: _addEdge,
+                changeLoc: _changeLoc,
+              ));
+            }
+            for (var edge in graph.edges) {
+              _edges.add(EdgeWidget(
+                  edge: edge,
+                  graph: graph,
+                  to: map[edge.to]!,
+                  from: map[edge.from]!));
+            }
           });
         } finally {}
       }
@@ -150,7 +166,9 @@ class _GraphWidget extends State<GraphWidget> {
           if (file.path.contains(".txt") || file.path.contains(".docx")) {
             var text = await file.readAsString();
             setState(() {
-              graph = text.convertToGraph(false);
+              var tuple = text.convertToGraph(false);
+              graph = tuple.item1;
+              map = tuple.item2;
             });
           } else if (file.path.contains(".json")) {
             //more

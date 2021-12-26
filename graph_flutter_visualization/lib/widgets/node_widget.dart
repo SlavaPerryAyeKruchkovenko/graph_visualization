@@ -28,13 +28,13 @@ class NodeWidget extends ImplicitlyAnimatedWidget {
             duration: swapAnimationDuration,
             curve: swapAnimationCurve);
   var stateNow = _NodeWidget();
+  static final List<Node<num>> selectedNodes = [];
   @override
   // ignore: no_logic_in_create_state
   _NodeWidget createState() => stateNow;
 }
 
 class _NodeWidget extends AnimatedWidgetBaseState<NodeWidget> {
-  static final List<Node<num>> _selectedNodes = [];
   get state => _state;
   var _state = ObjectState.basic;
   _deleteNode(Node<num> node) => {
@@ -54,17 +54,17 @@ class _NodeWidget extends AnimatedWidgetBaseState<NodeWidget> {
   _selectNode(Node<num> node) => {
         setState(() {
           if (_state == ObjectState.basic) {
-            if (_selectedNodes.isNotEmpty) {
-              widget.addEdge.call(_selectedNodes.first, widget.node);
-              _selectedNodes.clear();
+            if (NodeWidget.selectedNodes.isNotEmpty) {
+              widget.addEdge.call(NodeWidget.selectedNodes.first, widget.node);
+              NodeWidget.selectedNodes.clear();
               _state = ObjectState.basic;
             } else {
               _state = ObjectState.select;
-              _selectedNodes.add(node);
+              NodeWidget.selectedNodes.add(node);
             }
           } else {
             _state = ObjectState.basic;
-            _selectedNodes.clear();
+            NodeWidget.selectedNodes.clear();
           }
         })
       };
