@@ -1,4 +1,4 @@
-enum NodeState {
+enum ObjectState {
   basic,
   select,
   passed,

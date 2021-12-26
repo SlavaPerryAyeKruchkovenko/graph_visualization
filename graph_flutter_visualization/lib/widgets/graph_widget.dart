@@ -28,19 +28,11 @@ class _GraphWidget extends State<GraphWidget> {
   double posx = 0;
   double posy = 0;
   String debugText = "";
-  List<NodeWidget> _nodes = [];
+  final List<NodeWidget> _nodes = [];
+  List<EdgeWidget> _edges = [];
   bool _isRun = false;
   bool _needSubtitles = false;
-  _changeNodes() {
-    _nodes = List.generate(
-        graph.lenght,
-        (i) => NodeWidget(
-              node: graph[i],
-              graph: graph,
-              addEdge: _addEdge,
-              callback: callback,
-            ));
-  }
+  Map<Node<num>, Point> map = {};
 
   _onTapDown(BuildContext context, TapDownDetails details) {
     final RenderBox? box = context.findRenderObject() as RenderBox?;
@@ -48,17 +40,52 @@ class _GraphWidget extends State<GraphWidget> {
     var node = Node<num>(0);
     posx = localOffset.dx;
     posy = localOffset.dy;
+    var point = Point(posx, posy);
     setState(() {
-      node.location = Point(posx, posy);
+      map[node] = point;
       graph.addNode(node);
-      _changeNodes();
+      _nodes.add(NodeWidget(
+        map[node]!,
+        node: node,
+        graph: graph,
+        addEdge: _addEdge,
+        callback: callback,
+        changeLoc: _changeLoc,
+      ));
     });
   }
 
-  callback() {
+  callback(changeObj) {
     setState(() {
-      deactivate();
-      _changeNodes();
+      if (changeObj is Node<num>) {
+        _edges = _edges
+            .where((x) => !changeObj.incidentEdges.contains(x.edge))
+            .toList();
+        _nodes.remove(_nodes.where((widget) => widget.node == changeObj).first);
+        map.remove(changeObj);
+      } else if (changeObj is Edge<num>) {
+        _edges.remove(_edges.where((widget) => widget.edge == changeObj).first);
+      } else {
+        deactivate();
+      }
+    });
+  }
+
+  _changeLoc(Node<num> node, loc) {
+    map[node] = loc;
+    setState(() {
+      _edges = _edges
+          .where((x) => x.edge.to != node && x.edge.from != node)
+          .toList();
+
+      for (var edge in node.incidentEdges) {
+        _edges.add(EdgeWidget(
+            edge: edge,
+            graph: graph,
+            callback: callback,
+            to: map[edge.to]!,
+            from: map[edge.from]!));
+      }
     });
   }
 
@@ -131,49 +158,12 @@ class _GraphWidget extends State<GraphWidget> {
   }
 
   _graphBypass(Function(Node<num>) action) {
-    if (_nodes.any((node) => node.state == NodeState.select) && !_isRun) {
-      action.call(graph.nodes.where((node) => node.isSelected).first);
+    if (_nodes.any((node) => node.state == ObjectState.select) && !_isRun) {
+      action.call(
+          _nodes.where((node) => node.state == ObjectState.select).first.node);
     } else {
       _showAlertDialog(context, "You don't select node.");
     }
-  }
-
-  _depthSearch(Node<num> startNode) async {
-    List<Node<num>> path = [];
-    setState(() {
-      _isRun = true;
-    });
-    var visited = HashSet<Node<num>>();
-    ListQueue<Node<num>> stack = ListQueue();
-    stack.addLast(startNode);
-    while (stack.isNotEmpty) {
-      var node = stack.removeLast();
-      _printText("\n Выбираем вершину ${node.id}");
-      if (!visited.contains(node)) {
-        visited.add(node);
-        path.add(node);
-        _printText("\n Посешаем вершину ${node.id}",
-            anotherFucntion: () => node.isSelected = true);
-        await Future.delayed(const Duration(milliseconds: 1000));
-        _printText(
-            "\n\n находим вершины ${_toString(node.incidentNodes)} добаляем их в stack",
-            anotherFucntion: () => node.isSelected = false);
-
-        await Future.delayed(const Duration(milliseconds: 1000));
-        for (var incidentNode in node.incidentNodes) {
-          stack.addLast(incidentNode);
-        }
-        _printText("\n\n stack сейчас имеет вершины: ${_toString(stack)} ");
-      } else {
-        _printText("\n мы ее уже посешали");
-      }
-    }
-    _printText("\n конечный путь :${_toString(path)}", anotherFucntion: () {
-      for (var node in graph.nodes) {
-        node.isSelected = false;
-      }
-      _isRun = false;
-    });
   }
 
   _printText(text, {Function()? anotherFucntion}) {
@@ -194,6 +184,50 @@ class _GraphWidget extends State<GraphWidget> {
     return text;
   }
 
+  _depthSearch(Node<num> startNode) async {
+    List<Node<num>> path = [];
+    setState(() {
+      _isRun = true;
+    });
+    var visited = HashSet<Node<num>>();
+    ListQueue<Node<num>> stack = ListQueue();
+    stack.addLast(startNode);
+    while (stack.isNotEmpty) {
+      var node = stack.removeLast();
+      _printText("\n Выбираем вершину ${node.id}");
+      if (!visited.contains(node)) {
+        visited.add(node);
+        path.add(node);
+        _printText("\n Посешаем вершину ${node.id}",
+            anotherFucntion: () => _nodes
+                .where((node2) => node2.node.id == node.id)
+                .first
+                .state = ObjectState.select);
+        await Future.delayed(const Duration(milliseconds: 1000));
+        _printText(
+            "\n\n находим вершины ${_toString(node.incidentNodes)} добаляем их в stack",
+            anotherFucntion: () => _nodes
+                .where((node2) => node2.node.id == node.id)
+                .first
+                .state = ObjectState.passed);
+
+        await Future.delayed(const Duration(milliseconds: 1000));
+        for (var incidentNode in node.incidentNodes) {
+          stack.addLast(incidentNode);
+        }
+        _printText("\n\n stack сейчас имеет вершины: ${_toString(stack)} ");
+      } else {
+        _printText("\n мы ее уже посешали");
+      }
+    }
+    _printText("\n конечный путь :${_toString(path)}", anotherFucntion: () {
+      for (var node in _nodes) {
+        node.state = ObjectState.basic;
+      }
+      _isRun = false;
+    });
+  }
+
   _breadthSearch(Node<num> startNode) async {
     List<Node<num>> path = [];
     setState(() {
@@ -207,16 +241,20 @@ class _GraphWidget extends State<GraphWidget> {
       _printText("\n Выбираем вершину ${node.id}");
       queue.removeFirst();
       if (!visited.contains(node)) {
-        setState(() {
-          node.isSelected = true;
-        });
         visited.add(node);
-        _printText("\n Посешаем вершину ${node.id}");
+        _printText("\n Посешаем вершину ${node.id}",
+            anotherFucntion: () => _nodes
+                .where((node2) => node2.node.id == node.id)
+                .first
+                .state = ObjectState.select);
         path.add(node);
         await Future.delayed(const Duration(milliseconds: 1000));
         _printText(
             "\n\nНаходим вершины ${_toString(node.incidentNodes)} помешаем их в очередь",
-            anotherFucntion: () => node.isSelected = false);
+            anotherFucntion: () => _nodes
+                .where((node2) => node2.node.id == node.id)
+                .first
+                .state = ObjectState.passed);
         await Future.delayed(const Duration(milliseconds: 1000));
         for (var incidentNode in node.incidentNodes) {
           queue.add(incidentNode);
@@ -228,8 +266,8 @@ class _GraphWidget extends State<GraphWidget> {
       }
     }
     _printText("\n конечный путь :${_toString(path)}", anotherFucntion: () {
-      for (var node in graph.nodes) {
-        node.isSelected = false;
+      for (var node in _nodes) {
+        node.state = ObjectState.basic;
       }
       _isRun = false;
     });
@@ -248,12 +286,24 @@ class _GraphWidget extends State<GraphWidget> {
           ));
 
       setState(() {
-        for (var element in graph.nodes) {
-          element.isSelected = false;
+        for (var node in _nodes) {
+          node.state = ObjectState.basic;
         }
-        graph.connect(node1, node2, value);
+        var edge = graph.connect(node1, node2, value);
+        _edges.add(EdgeWidget(
+            edge: edge,
+            graph: graph,
+            callback: callback,
+            to: map[edge.to]!,
+            from: map[edge.from]!));
       });
     } else {
+      setState(() {
+        for (var node in _nodes) {
+          node.state = ObjectState.basic;
+        }
+      });
+
       _showAlertDialog(
           context, "this is edge is exist, please delete and make new");
     }
@@ -293,13 +343,7 @@ class _GraphWidget extends State<GraphWidget> {
                     )))
             : const Text(""),
         ..._nodes,
-        ...List.generate(
-            graph.edgeLenght,
-            (i) => EdgeWidget(
-                  edge: graph.edges.toList()[i],
-                  graph: graph,
-                  callback: callback,
-                )),
+        ..._edges,
         Positioned(
           child: TextButton(
               onPressed: _showSettingsPanel,

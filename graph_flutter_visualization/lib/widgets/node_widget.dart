@@ -7,56 +7,57 @@ import 'package:graph_logic/graph_logic.dart';
 
 // ignore: must_be_immutable
 class NodeWidget extends ImplicitlyAnimatedWidget {
-  final Function()? callback;
+  final Function(dynamic)? callback;
+  final Function(Node<num>, Point)? changeLoc;
   final Node<num> node;
   final Graph<num> graph;
   final Function(Node<num>, Node<num>) addEdge;
-  NodeWidget({
+  Point location;
+  NodeWidget(
+    this.location, {
     Key? key,
     Duration swapAnimationDuration = const Duration(milliseconds: 150),
     Curve swapAnimationCurve = Curves.linear,
     required this.graph,
     required this.node,
     required this.addEdge,
+    this.changeLoc,
     this.callback,
   }) : super(
             key: key,
             duration: swapAnimationDuration,
             curve: swapAnimationCurve);
-
-  var _state = NodeState.basic;
-  NodeState get state => _state;
+  var stateNow = _NodeWidget();
+  var state = ObjectState.basic;
   @override
-  _NodeWidget createState() => _NodeWidget();
+  // ignore: no_logic_in_create_state
+  _NodeWidget createState() => stateNow;
 }
 
 class _NodeWidget extends AnimatedWidgetBaseState<NodeWidget> {
   static Node<num>? _selectedNode;
 
-  void _deleteNode(Node<num> node) => {
+  _deleteNode(Node<num> node) => {
         setState(() {
-          widget.graph.removeNode(node);
           if (widget.callback != null) {
-            widget.callback!.call();
+            widget.callback!.call(widget.node);
           }
+          widget.graph.removeNode(node);
         })
       };
 
   _selectNode(Node<num> node) => {
         setState(() {
-          if (widget._state == NodeState.basic) {
+          if (widget.state == ObjectState.basic) {
             if (_selectedNode != null) {
-              widget.addEdge.call(_selectedNode!, node);
+              widget.addEdge.call(_selectedNode!, widget.node);
               _selectedNode = null;
-              if (widget.callback != null) {
-                widget.callback!.call();
-              }
             } else {
-              widget._state = NodeState.select;
+              widget.state = ObjectState.select;
               _selectedNode = node;
             }
           } else {
-            widget._state = NodeState.basic;
+            widget.state = ObjectState.basic;
             _selectedNode = null;
           }
         })
@@ -64,19 +65,22 @@ class _NodeWidget extends AnimatedWidgetBaseState<NodeWidget> {
   _moveNode(BuildContext context, DragUpdateDetails details) => {
         setState(() {
           final Offset local = details.globalPosition;
-          widget.node.location = Point(local.dx, local.dy);
+          widget.location = Point(local.dx, local.dy);
+          if (widget.changeLoc != null) {
+            widget.changeLoc!.call(widget.node, Point(local.dx, local.dy));
+          }
           if (widget.callback != null) {
-            widget.callback!.call();
+            widget.callback!.call(null);
           }
         })
       };
   Color _getColor() {
-    switch (widget._state) {
-      case NodeState.basic:
+    switch (widget.state) {
+      case ObjectState.basic:
         return Colors.purple;
-      case NodeState.select:
+      case ObjectState.select:
         return Colors.grey;
-      case NodeState.passed:
+      case ObjectState.passed:
         return Colors.pink;
       default:
         return Colors.green;
@@ -86,8 +90,8 @@ class _NodeWidget extends AnimatedWidgetBaseState<NodeWidget> {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-        top: widget.node.location.y - 20,
-        left: widget.node.location.x - 20,
+        top: widget.location.y - 20,
+        left: widget.location.x - 20,
         width: 40,
         height: 40,
         child: GestureDetector(

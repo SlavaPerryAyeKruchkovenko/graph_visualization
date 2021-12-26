@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:graph_logic/graph_logic.dart';
 
 extension Converter on String {
@@ -23,7 +21,7 @@ extension Converter on String {
       var x = double.tryParse(info[1]);
       var y = double.tryParse(info[2]);
       if (res != null && x != null && y != null) {
-        graph[res].location = Point(x, y);
+        //graph[res].location = Point(x, y);
       }
     }
     return graph;
