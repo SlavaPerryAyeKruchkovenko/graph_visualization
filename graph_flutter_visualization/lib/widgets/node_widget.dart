@@ -28,15 +28,15 @@ class NodeWidget extends ImplicitlyAnimatedWidget {
             duration: swapAnimationDuration,
             curve: swapAnimationCurve);
   var stateNow = _NodeWidget();
-  var state = ObjectState.basic;
   @override
   // ignore: no_logic_in_create_state
   _NodeWidget createState() => stateNow;
 }
 
 class _NodeWidget extends AnimatedWidgetBaseState<NodeWidget> {
-  static Node<num>? _selectedNode;
-
+  static final List<Node<num>> _selectedNodes = [];
+  get state => _state;
+  var _state = ObjectState.basic;
   _deleteNode(Node<num> node) => {
         setState(() {
           if (widget.callback != null) {
@@ -45,20 +45,26 @@ class _NodeWidget extends AnimatedWidgetBaseState<NodeWidget> {
           widget.graph.removeNode(node);
         })
       };
+  changeState(ObjectState state) {
+    setState(() {
+      _state = state;
+    });
+  }
 
   _selectNode(Node<num> node) => {
         setState(() {
-          if (widget.state == ObjectState.basic) {
-            if (_selectedNode != null) {
-              widget.addEdge.call(_selectedNode!, widget.node);
-              _selectedNode = null;
+          if (_state == ObjectState.basic) {
+            if (_selectedNodes.isNotEmpty) {
+              widget.addEdge.call(_selectedNodes.first, widget.node);
+              _selectedNodes.clear();
+              _state = ObjectState.basic;
             } else {
-              widget.state = ObjectState.select;
-              _selectedNode = node;
+              _state = ObjectState.select;
+              _selectedNodes.add(node);
             }
           } else {
-            widget.state = ObjectState.basic;
-            _selectedNode = null;
+            _state = ObjectState.basic;
+            _selectedNodes.clear();
           }
         })
       };
@@ -69,13 +75,10 @@ class _NodeWidget extends AnimatedWidgetBaseState<NodeWidget> {
           if (widget.changeLoc != null) {
             widget.changeLoc!.call(widget.node, Point(local.dx, local.dy));
           }
-          if (widget.callback != null) {
-            widget.callback!.call(null);
-          }
         })
       };
   Color _getColor() {
-    switch (widget.state) {
+    switch (_state) {
       case ObjectState.basic:
         return Colors.purple;
       case ObjectState.select:
