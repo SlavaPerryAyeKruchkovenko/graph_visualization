@@ -1,9 +1,7 @@
-import 'dart:convert';
-import 'dart:io';
 import 'package:graph_logic/graph_logic.dart';
 
 void main() {
-  example4();
+  example1();
 }
 
 void example1() {
@@ -39,37 +37,6 @@ void example3() {
   var edge1 = Edge(node1, node2, 3);
   var edge2 = Edge(node2, node1, 3);
   print(edge1 == edge2);
-}
-
-void example4() {
-  var list = [0, 1, 2, 3];
-  var nodes = list.map((e) => Node(e)).toList();
-  List<Tuple<Node<int>, Node<int>>> incedentNodes = [
-    Tuple(nodes[0], nodes[1]),
-    Tuple(nodes[1], nodes[2]),
-    Tuple(nodes[2], nodes[3]),
-    Tuple(nodes[3], nodes[0]),
-  ];
-  var values = [19, 20, 12, 9];
-  var graph = Graph.makeGraph<int>(incedentNodes, values, isOriented: false);
-  graph.removeNode(nodes[0]);
-  var path =
-      "D:\\repoditory\\graph_visualization\\graph_logic\\example\\example.json";
-  var file = File(path);
-  var text = json.encode(nodes);
-  file.writeAsString(text);
-
-  printTable(graph);
-}
-
-void example5() {
-  var path =
-      "D:\\repoditory\\graph_visualization\\graph_logic\\example\\example.json";
-  var file = File(path);
-  Graph<num> graph = Graph.fromJson(json.decode(file.readAsStringSync()));
-  var a = graph.toString();
-  print(a);
-  //printTable(graph);
 }
 
 void printTable(Graph<num> graph) {
