@@ -18,7 +18,7 @@ import 'package:graph_logic/graph_logic.dart';
 import 'edge_widget.dart';
 import 'package:file_picker/file_picker.dart';
 import 'message_box.dart';
-import 'dart:html' as html;
+//import 'package:dio/dio.dart';
 
 class GraphWidget extends StatefulWidget {
   const GraphWidget({Key? key}) : super(key: key);
@@ -30,7 +30,6 @@ class _GraphWidget extends State<GraphWidget> {
   var graph = Graph<num>.def(false);
   double posx = 0;
   double posy = 0;
-  String debugText = "";
   String _subtitles = "";
   final List<NodeWidget> _nodes = [];
   List<EdgeWidget> _edges = [];
@@ -122,10 +121,8 @@ class _GraphWidget extends State<GraphWidget> {
   }
 
   _saveFile() async {
-    var url = "C:\\Users\\Slava\\Downloads";
-    html.AnchorElement anchorElement = html.AnchorElement(href: url);
-    anchorElement.download = url;
-    anchorElement.click();
+    //var dio = Dio();
+    //var response = await dio.download('url-to-downloadable', 'path-to-save-to');
   }
 
   _uploadFile() async {
@@ -138,6 +135,8 @@ class _GraphWidget extends State<GraphWidget> {
           debugPrint(text);
           setState(() {
             var tuple = text.convertToGraph(false);
+            _nodes.clear();
+            _edges.clear();
             graph = tuple.item1;
             map = tuple.item2;
             for (var node in graph.nodes) {
@@ -192,16 +191,6 @@ class _GraphWidget extends State<GraphWidget> {
     }
   }
 
-  _printText(text, {Function()? anotherFucntion}) {
-    debugPrint(text);
-    setState(() {
-      if (anotherFucntion != null) {
-        anotherFucntion.call();
-      }
-      debugText += text;
-    });
-  }
-
   String _toString(Iterable nodes) {
     var text = "";
     for (var node in nodes.map((x) => x.id.toString())) {
@@ -210,63 +199,66 @@ class _GraphWidget extends State<GraphWidget> {
     return text;
   }
 
+  _changeNodeState(node, ObjectState state) {
+    setState(() {
+      _nodes
+          .where((node2) => node2.node.id == node.id)
+          .first
+          .stateNow
+          .changeState(state);
+    });
+  }
+
+  _printSubs(text) {
+    setState(() {
+      _subtitles = text;
+    });
+  }
+
+  _changeToken(isStart) {
+    setState(() {
+      _isRun = isStart;
+    });
+  }
+
+  _changeAllNode(ObjectState state) {
+    setState(() {
+      for (var node in _nodes) {
+        node.stateNow.changeState(state);
+      }
+    });
+  }
+
   _depthSearch(Node<num> startNode) async {
     List<Node<num>> path = [];
-    setState(() {
-      _isRun = true;
-    });
+    _changeToken(true);
     var visited = HashSet<Node<num>>();
     ListQueue<Node<num>> stack = ListQueue();
     stack.addLast(startNode);
     while (stack.isNotEmpty) {
       var node = stack.removeLast();
-      _printText("\n Выбираем вершину ${node.id}");
       if (!visited.contains(node)) {
         visited.add(node);
-        _printText("\n Посешаем вершину ${node.id}",
-            anotherFucntion: () => _nodes
-                .where((node2) => node2.node.id == node.id)
-                .first
-                .stateNow
-                .changeState(ObjectState.select));
-        _subtitles = "Visiting node number ${node.id}";
+        _changeNodeState(node, ObjectState.select);
+        _printSubs("Visiting node number ${node.id}");
         path.add(node);
         await Future.delayed(const Duration(milliseconds: 1000));
-        _printText(
-            "\n\n находим вершины ${_toString(node.incidentNodes)} добаляем их в stack",
-            anotherFucntion: () => _nodes
-                .where((node2) => node2.node.id == node.id)
-                .first
-                .stateNow
-                .changeState(ObjectState.passed));
-
+        _changeNodeState(node, ObjectState.passed);
         await Future.delayed(const Duration(milliseconds: 1000));
         for (var incidentNode in node.incidentNodes) {
           stack.addLast(incidentNode);
         }
-        var arr = _toString(stack);
-        _printText("\n\n stack сейчас имеет вершины: $arr ");
-        setState(() {
-          _subtitles = "Stack have $arr";
-        });
+        _printSubs("Stack have ${_toString(stack)}");
         await Future.delayed(const Duration(milliseconds: 1000));
       } else {
-        _printText("\n мы ее уже посешали");
         await Future.delayed(const Duration(milliseconds: 500));
       }
     }
-    var arr = _toString(path);
-    _printText("\n конечный путь :$arr", anotherFucntion: () {
-      _subtitles = "finally path $arr";
-    });
+    _printSubs("finally path ${_toString(path)}");
     await Future.delayed(const Duration(milliseconds: 2000));
-    setState(() {
-      _subtitles = "";
-      for (var node in _nodes) {
-        node.stateNow.changeState(ObjectState.basic);
-      }
-      _isRun = false;
-    });
+    _printSubs("");
+    _changeAllNode(ObjectState.basic);
+    _changeToken(false);
   }
 
   _breadthSearch(Node<num> startNode) async {
@@ -278,54 +270,29 @@ class _GraphWidget extends State<GraphWidget> {
     var queue = Queue<Node<num>>();
     queue.add(startNode);
     while (queue.isNotEmpty) {
-      var node = queue.first;
-      _printText("\n Выбираем вершину ${node.id}");
-      queue.removeFirst();
+      var node = queue.removeFirst();
       if (!visited.contains(node)) {
         visited.add(node);
-        _printText("\n Посешаем вершину ${node.id}",
-            anotherFucntion: () => _nodes
-                .where((node2) => node2.node.id == node.id)
-                .first
-                .stateNow
-                .changeState(ObjectState.select));
-        _subtitles = "Visiting node number ${node.id}";
+        _changeNodeState(node, ObjectState.select);
+        _printSubs("Visiting node number ${node.id}");
         path.add(node);
         await Future.delayed(const Duration(milliseconds: 1000));
-        _printText(
-            "\n\nНаходим вершины ${_toString(node.incidentNodes)} помешаем их в очередь",
-            anotherFucntion: () => _nodes
-                .where((node2) => node2.node.id == node.id)
-                .first
-                .stateNow
-                .changeState(ObjectState.passed));
+        _changeNodeState(node, ObjectState.passed);
         await Future.delayed(const Duration(milliseconds: 1000));
         for (var incidentNode in node.incidentNodes) {
           queue.add(incidentNode);
         }
-        var arr = _toString(queue);
-        _printText("\n\n очередь сейчас имеет вершины: $arr ");
-        setState(() {
-          _subtitles = "Queue have $arr";
-        });
+        _printSubs("Queue have ${_toString(queue)}");
         await Future.delayed(const Duration(milliseconds: 1000));
       } else {
-        _printText("\n мы ее уже посешали");
         await Future.delayed(const Duration(milliseconds: 500));
       }
     }
-    var arr = _toString(path);
-    _printText("\n конечный путь :$arr", anotherFucntion: () {
-      _subtitles = "finally path $arr";
-    });
+    _printSubs("finally path ${_toString(path)}");
     await Future.delayed(const Duration(milliseconds: 2000));
-    setState(() {
-      _subtitles = "";
-      for (var node in _nodes) {
-        node.stateNow.changeState(ObjectState.basic);
-      }
-      _isRun = false;
-    });
+    _printSubs("");
+    _changeAllNode(ObjectState.basic);
+    _changeToken(false);
   }
 
   _addEdge(Node<num> node1, Node<num> node2) async {
@@ -375,27 +342,6 @@ class _GraphWidget extends State<GraphWidget> {
             backgroundColor: Colors.blue,
           ),
         ),
-        _needSubtitles
-            ? Positioned(
-                left: 0,
-                top: 0,
-                child: Container(
-                    color: Colors.white,
-                    width: 800,
-                    height: 200,
-                    child: Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.vertical, //.horizontal
-                        child: Text(
-                          debugText,
-                          style: const TextStyle(
-                            fontSize: 16.0,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                    )))
-            : const Text(""),
         ..._nodes,
         ..._edges,
         Positioned(
